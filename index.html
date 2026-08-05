@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>箱束包 計算ツール</title>
+<style>
+  :root{
+    --bg: #1c2422;
+    --panel: #f2ede2;
+    --ink: #23231f;
+    --ink-soft: #6b6a60;
+    --line: #d8d0bd;
+    --accent: #b5622a;
+    --accent-soft: #e8dcc8;
+    --mono: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.03), transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(255,255,255,0.025), transparent 45%);
+    font-family: "Hiragino Sans", "Yu Gothic", "Segoe UI", sans-serif;
+    color: var(--ink);
+    display:flex;
+    justify-content:center;
+    padding: 28px 14px 60px;
+  }
+  .sheet{
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel);
+    border-radius: 6px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  .head{
+    padding: 18px 24px;
+    border-bottom: 2px solid var(--ink);
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .head-left{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .hamburger-btn{
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .hamburger-btn span{
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+  }
+  .head-titles{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+  }
+  .head-titles h1{
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    margin:0;
+    font-weight:700;
+    line-height:1.2;
+  }
+  .preset-current{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .head .tag{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .section{
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section:last-of-type{ border-bottom:none; }
+  .row{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .row:last-child{ margin-bottom:0; }
+  .row label{
+    flex: 0 0 78px;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .row .unitline{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:1;
+  }
+  input[type=number]{
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 7px 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    width: 100%;
+    color: var(--ink);
+  }
+  input[type=number]:focus{
+    outline:none;
+    border-color: var(--accent);
+  }
+  .config-input{
+    width: 64px;
+    flex: 0 0 64px;
+    font-size:13px;
+    padding: 5px 6px;
+    color: var(--ink-soft);
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+  }
+  .small-label{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .drawer-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 40;
+  }
+  .drawer-overlay.open{
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .drawer{
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78%;
+    max-width: 300px;
+    background: var(--panel);
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 2px 0 24px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer.open{
+    transform: translateX(0);
+  }
+  .drawer-head{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 20px 18px 14px;
+    border-bottom: 2px solid var(--ink);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .drawer-head button{
+    border:none;
+    background:none;
+    font-size: 18px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .drawer-list{
+    overflow-y: auto;
+    padding: 6px 0;
+    flex: 1;
+  }
+  .drawer-item{
+    display:block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 18px;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .drawer-item.active{
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .subtotal-row{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+  }
+  #resetBtn{
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #resetBtn:hover{
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  #resetBtn:active{
+    background: var(--accent-soft);
+  }
+  .subtotal{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-align:right;
+  }
+  .subtotal b{
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .label-title{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .weight-options{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .wchip{
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    color: var(--ink);
+    position:relative;
+    transition: all .15s ease;
+  }
+  .wchip.active{
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .result{
+    background: var(--ink);
+    color: var(--accent-soft);
+    padding: 22px 24px 26px;
+  }
+  .result .line{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    margin-bottom: 6px;
+    font-size: 13.5px;
+    color: #c9c4b4;
+  }
+  .result .line.grand{
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 28px;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .result .line.grand .u{
+    font-size: 14px;
+    color: var(--accent-soft);
+    font-weight:400;
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="head">
+    <div class="head-left">
+      <button class="hamburger-btn" id="presetTrigger" aria-label="銘柄選択">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="head-titles">
+        <h1>漢方計算ツール</h1>
+        <span class="preset-current" id="presetTriggerLabel">ツムラ大箱(189包)</span>
+      </div>
+    </div>
+    <div class="tag">TALLY / 換算</div>
+  </div>
+
+  <div class="section">
+    <div class="label-title">数量入力</div>
+
+    <div class="row">
+      <label>箱</label>
+      <div class="unitline">
+        <input type="number" inputmode="decimal" id="boxCount" min="0" value="0">
+        <span class="small-label">箱 ×</span>
+        <input type="number" inputmode="decimal" id="boxUnit" class="config-input" min="1" value="189">
+        <span class="small-label">包/箱</span>
+      </div>
+    </div>
+
+    <div class="row" id="bundleRow">
+      <label id="bundleLabel">束</label>
+      <div class="unitline">
+        <input type="number" inputmode="decimal" id="bundleCount" min="0" value="0">
+        <span class="small-label" id="bundleLabelSuffix">束 ×</span>
+        <input type="number" inputmode="decimal" id="bundleUnit" class="config-input" min="1" value="21">
+        <span class="small-label">包/束</span>
+      </div>
+    </div>
+
+    <div class="row" id="sheetRow">
+      <label>シート</label>
+      <div class="unitline">
+        <input type="number" inputmode="decimal" id="sheetCount" min="0" value="0">
+        <span class="small-label">枚 ×</span>
+        <input type="number" inputmode="decimal" id="sheetUnit" class="config-input" min="1" value="3">
+        <span class="small-label">包/枚</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>個別</label>
+      <div class="unitline">
+        <input type="number" inputmode="decimal" id="looseCount" min="0" value="0">
+        <span class="small-label">包</span>
+      </div>
+    </div>
+
+    <div class="subtotal-row">
+      <button id="resetBtn" type="button">リセット</button>
+      <div class="subtotal">
+        合計包数　<b id="totalPieces">0</b> 包
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="label-title" id="factorTitle">グラム換算（1包あたり）</div>
+    <div class="weight-options" id="weightOptions"></div>
+  </div>
+
+  <div class="result">
+    <div class="line">
+      <span>合計包数</span>
+      <span id="resPieces">0 包</span>
+    </div>
+    <div class="line">
+      <span>換算係数</span>
+      <span id="resFactor">2 g/包</span>
+    </div>
+    <div class="line grand">
+      <span id="resultLabel">総重量</span>
+      <span id="resWeight">0<span class="u" id="resUnit">g</span></span>
+    </div>
+  </div>
+
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <span>銘柄を選択</span>
+    <button id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-list">
+    <button class="drawer-item" data-key="189">ツムラ大箱(189包)</button>
+    <button class="drawer-item" data-key="84">ツムラ中箱(84包)</button>
+    <button class="drawer-item" data-key="42">ツムラ小箱(42包)</button>
+    <button class="drawer-item" data-key="kracie42">クラシエ小箱(42包)</button>
+    <button class="drawer-item" data-key="kracie168">クラシエ大箱(168包)</button>
+    <button class="drawer-item" data-key="kracie28">クラシエ小箱(28包)</button>
+    <button class="drawer-item" data-key="kracie_tab252">クラシエ錠(252錠)</button>
+    <button class="drawer-item" data-key="kracie_tab168">クラシエ錠(168錠)</button>
+    <button class="drawer-item" data-key="taikodo84">太虎堂(84包)</button>
+    <button class="drawer-item" data-key="uchida840">ウチダ(840丸)</button>
+    <button class="drawer-item" data-key="kotaro42">コタロー(42包)</button>
+    <button class="drawer-item" data-key="kotaro168">コタロー(168包)</button>
+    <button class="drawer-item" data-key="kotaro231">コタロー(231包)</button>
+    <button class="drawer-item" data-key="sanwa84">三和(84包)</button>
+    <button class="drawer-item" data-key="sanwa300">三和(300包)</button>
+    <button class="drawer-item" data-key="honzo42">本草(42包)</button>
+    <button class="drawer-item" data-key="osugi84">オースギ(84包)</button>
+    <button class="drawer-item" data-key="toyo252">東洋(252包)</button>
+  </div>
+</div>
+
+<script>
+  const presets = {
+    '189':      { box: 189, hasBundle: true,  bundleLabel: '束', bundleUnit: 21, hasSheet: true,  sheetUnit: 3, weights: [{v:2.5,u:'g'},{v:3,u:'g'}] },
+    '84':       { box: 84,  hasBundle: true,  bundleLabel: '束', bundleUnit: 21, hasSheet: true,  sheetUnit: 3, weights: [{v:2.5,u:'g'},{v:3,u:'g'}] },
+    '42':       { box: 42,  hasBundle: true,  bundleLabel: '束', bundleUnit: 21, hasSheet: true,  sheetUnit: 3, weights: [{v:2.5,u:'g'},{v:3,u:'g'}] },
+    'kracie42': { box: 42,  hasBundle: true,  bundleLabel: '袋', bundleUnit: 21, hasSheet: false, sheetUnit: 3, weights: [{v:2,u:'g'},{v:2.5,u:'g'}] },
+    'kracie168':{ box: 168, hasBundle: true,  bundleLabel: '袋', bundleUnit: 14, hasSheet: false, sheetUnit: 3, weights: [{v:3,u:'g'},{v:3.75,u:'g'}] },
+    'kracie28': { box: 28,  hasBundle: true,  bundleLabel: '袋', bundleUnit: 14, hasSheet: false, sheetUnit: 3, weights: [{v:3,u:'g'},{v:3.75,u:'g'}] },
+    'kracie_tab252': { box: 84, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 6, weights: [{v:3,u:'錠'}] },
+    'kracie_tab168': { box: 42, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:4,u:'錠'}] },
+    'taikodo84': { box: 84, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
+    'uchida840': { box: 42, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:20,u:'丸'}] },
+    'kotaro42': { box: 42, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'},{v:3,u:'g'}] },
+    'kotaro168': { box: 168, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:3,u:'g'}] },
+    'kotaro231': { box: 231, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:3,u:'g'}] },
+    'sanwa84': { box: 84, hasBundle: true, bundleLabel: '束', bundleUnit: 42, hasSheet: true, sheetUnit: 3, weights: [{v:2.5,u:'g'}] },
+    'sanwa300': { box: 300, hasBundle: true, bundleLabel: '束', bundleUnit: 60, hasSheet: true, sheetUnit: 3, weights: [{v:1.5,u:'g'}] },
+    'honzo42': { box: 42, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2.5,u:'g'}] },
+    'osugi84': { box: 84, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [
+      {v:1,u:'g'},{v:1.5,u:'g'},{v:2,u:'g'},{v:3,u:'g'},{v:4,u:'g'},
+      {v:3,u:'錠'},{v:5,u:'錠'},{v:6,u:'錠'}
+    ] },
+    'toyo252': { box: 252, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
+  };
+
+  const RESULT_LABELS = { g: '総重量', '錠': '総錠数', '丸': '総丸数' };
+
+  let weights = [];
+  let selectedWeight = null;
+  let hasSheet = true;
+  let hasBundle = true;
+
+  const boxCount = document.getElementById('boxCount');
+  const boxUnit = document.getElementById('boxUnit');
+  const resetBtn = document.getElementById('resetBtn');
+  const bundleRow = document.getElementById('bundleRow');
+  const bundleCount = document.getElementById('bundleCount');
+  const bundleUnit = document.getElementById('bundleUnit');
+  const bundleLabel = document.getElementById('bundleLabel');
+  const bundleLabelSuffix = document.getElementById('bundleLabelSuffix');
+  const sheetRow = document.getElementById('sheetRow');
+  const sheetCount = document.getElementById('sheetCount');
+  const sheetUnit = document.getElementById('sheetUnit');
+  const looseCount = document.getElementById('looseCount');
+  const totalPiecesEl = document.getElementById('totalPieces');
+  const resPieces = document.getElementById('resPieces');
+  const resFactor = document.getElementById('resFactor');
+  const resWeight = document.getElementById('resWeight');
+  const resUnit = document.getElementById('resUnit');
+  const resultLabelEl = document.getElementById('resultLabel');
+  const factorTitle = document.getElementById('factorTitle');
+  const weightOptionsEl = document.getElementById('weightOptions');
+  const presetTrigger = document.getElementById('presetTrigger');
+  const presetTriggerLabel = document.getElementById('presetTriggerLabel');
+  const drawer = document.getElementById('drawer');
+  const drawerOverlay = document.getElementById('drawerOverlay');
+  const drawerClose = document.getElementById('drawerClose');
+  const drawerItems = Array.from(document.querySelectorAll('.drawer-item'));
+
+  function num(el, fallback){
+    const v = parseFloat(el.value);
+    return isNaN(v) ? fallback : v;
+  }
+
+  function getTotalPieces(){
+    const bx = num(boxCount,0) * num(boxUnit,1);
+    const bd = hasBundle ? (num(bundleCount,0) * num(bundleUnit,1)) : 0;
+    const sh = hasSheet ? (num(sheetCount,0) * num(sheetUnit,1)) : 0;
+    const ls = num(looseCount,0);
+    return bx + bd + sh + ls;
+  }
+
+  function formatNum(n){
+    return Math.round(n * 1000) / 1000;
+  }
+
+  function renderWeights(){
+    weightOptionsEl.innerHTML = '';
+    weights.forEach((w) => {
+      const chip = document.createElement('div');
+      const isActive = selectedWeight && w.v === selectedWeight.v && w.u === selectedWeight.u;
+      chip.className = 'wchip' + (isActive ? ' active' : '');
+      chip.textContent = w.v + w.u;
+      chip.addEventListener('click', () => {
+        selectedWeight = w;
+        renderWeights();
+        update();
+      });
+      weightOptionsEl.appendChild(chip);
+    });
+  }
+
+  function update(){
+    const total = getTotalPieces();
+    totalPiecesEl.textContent = formatNum(total);
+    resPieces.textContent = formatNum(total) + ' 包';
+    resFactor.textContent = selectedWeight.v + ' ' + selectedWeight.u + '/包';
+    resWeight.childNodes[0].nodeValue = formatNum(total * selectedWeight.v);
+    resUnit.textContent = selectedWeight.u;
+    resultLabelEl.textContent = RESULT_LABELS[selectedWeight.u] || '合計';
+  }
+
+  function openDrawer(){
+    drawer.classList.add('open');
+    drawerOverlay.classList.add('open');
+  }
+
+  function closeDrawer(){
+    drawer.classList.remove('open');
+    drawerOverlay.classList.remove('open');
+  }
+
+  function applyPreset(key){
+    const p = presets[key];
+    if(!p) return;
+
+    boxUnit.value = p.box;
+
+    hasBundle = p.hasBundle;
+    bundleRow.style.display = hasBundle ? '' : 'none';
+    if(hasBundle){
+      bundleUnit.value = p.bundleUnit;
+      bundleLabel.textContent = p.bundleLabel;
+      bundleLabelSuffix.textContent = p.bundleLabel + ' ×';
+    } else {
+      bundleCount.value = 0;
+    }
+
+    hasSheet = p.hasSheet;
+    sheetRow.style.display = hasSheet ? '' : 'none';
+    if(hasSheet){
+      sheetUnit.value = p.sheetUnit;
+    } else {
+      sheetCount.value = 0;
+    }
+
+    weights = [...p.weights].sort((a,b) => a.u === b.u ? a.v - b.v : 0);
+    selectedWeight = weights[0];
+
+    const distinctUnits = [...new Set(weights.map(w => w.u))];
+    factorTitle.textContent = distinctUnits.length === 1
+      ? (distinctUnits[0] === 'g' ? 'グラム換算' : distinctUnits[0] + '換算') + '（1包あたり）'
+      : '換算（1包あたり）';
+
+    renderWeights();
+    update();
+
+    drawerItems.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.key === key);
+      if(btn.dataset.key === key){
+        presetTriggerLabel.textContent = btn.textContent;
+      }
+    });
+  }
+
+  // Fix: tapping/focusing a number field selects all its text,
+  // so typing a digit replaces the old value instead of appending to it
+  // (e.g. focusing "0" and typing "1" becomes "1", not "10").
+  const allNumberInputs = [boxCount, boxUnit, bundleCount, bundleUnit, sheetCount, sheetUnit, looseCount];
+  allNumberInputs.forEach(el => {
+    el.addEventListener('focus', () => {
+      setTimeout(() => el.select(), 0);
+    });
+    el.addEventListener('input', update);
+  });
+
+  presetTrigger.addEventListener('click', openDrawer);
+  drawerClose.addEventListener('click', closeDrawer);
+  drawerOverlay.addEventListener('click', closeDrawer);
+
+  drawerItems.forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyPreset(btn.dataset.key);
+      closeDrawer();
+    });
+  });
+
+  resetBtn.addEventListener('click', () => {
+    boxCount.value = 0;
+    bundleCount.value = 0;
+    sheetCount.value = 0;
+    looseCount.value = 0;
+    update();
+  });
+
+  applyPreset(drawerItems[0].dataset.key);
+</script>
+
+</body>
+</html>
