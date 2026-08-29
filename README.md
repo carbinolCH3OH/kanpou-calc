@@ -1,2 +1,2 @@
 # kanpou-calc
-test
+Ver.0.2.0
