@@ -528,10 +528,22 @@
   function update(){
     const total = getTotalPieces();
     const extra = num(extraAmount, 0);
-    const grand = total * selectedWeight.v + extra;
 
     totalPiecesEl.textContent = formatNum(total);
     resPieces.textContent = formatNum(total) + ' ' + baseUnitLabel;
+
+    if(!selectedWeight){
+      // No factor chosen (after reset): show placeholder until one is tapped.
+      const hintUnit = weights[0] ? weights[0].u : '';
+      resFactor.textContent = '未選択';
+      resWeight.childNodes[0].nodeValue = '—';
+      resUnit.textContent = '';
+      resultLabelEl.textContent = RESULT_LABELS[hintUnit] || '合計';
+      extraUnitLabel.textContent = (hintUnit || '') + '（バラ分）';
+      return;
+    }
+
+    const grand = total * selectedWeight.v + extra;
     resFactor.textContent = selectedWeight.v + ' ' + selectedWeight.u + '/' + baseUnitLabel
       + (extra > 0 ? '  +' + formatNum(extra) + selectedWeight.u : '');
     resWeight.childNodes[0].nodeValue = formatNum(grand);
@@ -641,6 +653,8 @@
     sheetCount.value = 0;
     looseCount.value = 0;
     extraAmount.value = 0;
+    selectedWeight = null;
+    renderWeights();
     update();
   });
 
