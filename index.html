@@ -316,13 +316,13 @@
     <div class="section">
       <div class="label-title">数量入力</div>
 
-      <div class="row">
+      <div class="row" id="boxRow">
         <label>箱</label>
         <div class="unitline">
           <input type="number" inputmode="numeric" enterkeyhint="next" id="boxCount" min="0" value="0">
           <span class="small-label">箱 ×</span>
           <span class="unit-val" id="boxUnit">189</span>
-          <span class="small-label">包</span>
+          <span class="small-label" id="boxUnitSuffix">包</span>
         </div>
       </div>
 
@@ -332,7 +332,7 @@
           <input type="number" inputmode="numeric" enterkeyhint="next" id="bundleCount" min="0" value="0">
           <span class="small-label" id="bundleLabelSuffix">束 ×</span>
           <span class="unit-val plain" id="bundleUnit">21</span>
-          <span class="small-label">包</span>
+          <span class="small-label" id="bundleUnitSuffix">包</span>
         </div>
       </div>
 
@@ -342,7 +342,7 @@
           <input type="number" inputmode="numeric" enterkeyhint="next" id="sheetCount" min="0" value="0">
           <span class="small-label">枚 ×</span>
           <span class="unit-val plain" id="sheetUnit">3</span>
-          <span class="small-label">包</span>
+          <span class="small-label" id="sheetUnitSuffix">包</span>
         </div>
       </div>
 
@@ -350,13 +350,13 @@
         <label>個別</label>
         <div class="unitline">
           <input type="number" inputmode="numeric" enterkeyhint="next" id="looseCount" min="0" value="0">
-          <span class="small-label">包</span>
+          <span class="small-label" id="looseUnitSuffix">包</span>
         </div>
       </div>
 
       <div class="subtotal">
         <button id="resetBtn" type="button">リセット</button>
-        <span>合計 <b id="totalPieces">0</b> 包</span>
+        <span>合計 <b id="totalPieces">0</b> <span id="totalUnitLabel">包</span></span>
       </div>
     </div>
 
@@ -404,11 +404,13 @@
     <button class="drawer-item" data-key="kracie28">クラシエ小箱(28包)</button>
     <button class="drawer-item" data-key="kracie_tab252">クラシエ錠(252錠)</button>
     <button class="drawer-item" data-key="kracie_tab168">クラシエ錠(168錠)</button>
+    <button class="drawer-item" data-key="kracie_tab378">クラシエ錠(378錠)</button>
     <button class="drawer-item" data-key="taikodo84">太虎堂(84包)</button>
     <button class="drawer-item" data-key="uchida840">ウチダ(840丸)</button>
     <button class="drawer-item" data-key="kotaro42">コタロー(42包)</button>
     <button class="drawer-item" data-key="kotaro168">コタロー(168包)</button>
     <button class="drawer-item" data-key="kotaro231">コタロー(231包)</button>
+    <button class="drawer-item" data-key="kotaro1260">コタロー(1260錠)</button>
     <button class="drawer-item" data-key="sanwa84">三和(84包)</button>
     <button class="drawer-item" data-key="sanwa300">三和(300包)</button>
     <button class="drawer-item" data-key="honzo42">本草(42包)</button>
@@ -427,16 +429,18 @@
     'kracie28': { box: 28,  hasBundle: true,  bundleLabel: '袋', bundleUnit: 14, hasSheet: false, sheetUnit: 3, weights: [{v:3,u:'g'},{v:3.75,u:'g'}] },
     'kracie_tab252': { box: 84, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 6, weights: [{v:3,u:'錠'}] },
     'kracie_tab168': { box: 42, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:4,u:'錠'}] },
-    'taikodo84': { box: 84, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
+    'kracie_tab378': { box: 126, hasBundle: true, bundleLabel: '束', bundleUnit: 42, hasSheet: true, sheetUnit: 6, weights: [{v:3,u:'錠'}] },
+    'taikodo84': { box: 84, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
     'uchida840': { box: 42, hasBundle: false, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:20,u:'丸'}] },
     'kotaro42': { box: 42, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'},{v:3,u:'g'}] },
     'kotaro168': { box: 168, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:3,u:'g'}] },
-    'kotaro231': { box: 231, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:3,u:'g'}] },
+    'kotaro231': { box: 231, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
+    'kotaro1260': { box: 1260, hasBundle: true, bundleLabel: '瓶', bundleUnit: 126, hasSheet: false, sheetUnit: 3, baseUnit: '錠', weights: [{v:1,u:'錠'}] },
     'sanwa84': { box: 84, hasBundle: true, bundleLabel: '束', bundleUnit: 42, hasSheet: true, sheetUnit: 3, weights: [{v:2.5,u:'g'}] },
     'sanwa300': { box: 300, hasBundle: true, bundleLabel: '束', bundleUnit: 60, hasSheet: true, sheetUnit: 3, weights: [{v:1.5,u:'g'}] },
     'honzo42': { box: 42, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2.5,u:'g'}] },
     'osugi84': { box: 84, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [
-      {v:1,u:'g'},{v:1.5,u:'g'},{v:2,u:'g'},{v:3,u:'g'},{v:4,u:'g'},
+      {v:1,u:'g'},{v:1.5,u:'g'},{v:2,u:'g'},{v:2.5,u:'g'},{v:3,u:'g'},{v:4,u:'g'},
       {v:3,u:'錠'},{v:5,u:'錠'},{v:6,u:'錠'}
     ] },
     'toyo252': { box: 252, hasBundle: true, bundleLabel: '束', bundleUnit: 21, hasSheet: true, sheetUnit: 3, weights: [{v:2,u:'g'}] },
@@ -448,19 +452,27 @@
   let selectedWeight = null;
   let hasSheet = true;
   let hasBundle = true;
+  let hasBox = true;
+  let baseUnitLabel = '包';
 
+  const boxRow = document.getElementById('boxRow');
   const boxCount = document.getElementById('boxCount');
   const boxUnit = document.getElementById('boxUnit');
+  const boxUnitSuffix = document.getElementById('boxUnitSuffix');
   const resetBtn = document.getElementById('resetBtn');
   const bundleRow = document.getElementById('bundleRow');
   const bundleCount = document.getElementById('bundleCount');
   const bundleUnit = document.getElementById('bundleUnit');
   const bundleLabel = document.getElementById('bundleLabel');
   const bundleLabelSuffix = document.getElementById('bundleLabelSuffix');
+  const bundleUnitSuffix = document.getElementById('bundleUnitSuffix');
   const sheetRow = document.getElementById('sheetRow');
   const sheetCount = document.getElementById('sheetCount');
   const sheetUnit = document.getElementById('sheetUnit');
+  const sheetUnitSuffix = document.getElementById('sheetUnitSuffix');
   const looseCount = document.getElementById('looseCount');
+  const looseUnitSuffix = document.getElementById('looseUnitSuffix');
+  const totalUnitLabel = document.getElementById('totalUnitLabel');
   const extraAmount = document.getElementById('extraAmount');
   const extraUnitLabel = document.getElementById('extraUnitLabel');
   const totalPiecesEl = document.getElementById('totalPieces');
@@ -491,7 +503,7 @@
   }
 
   function getTotalPieces(){
-    const bx = num(boxCount,0) * unitNum(boxUnit);
+    const bx = hasBox ? (num(boxCount,0) * unitNum(boxUnit)) : 0;
     const bd = hasBundle ? (num(bundleCount,0) * unitNum(bundleUnit)) : 0;
     const sh = hasSheet ? (num(sheetCount,0) * unitNum(sheetUnit)) : 0;
     return bx + bd + sh + num(looseCount,0);
@@ -519,8 +531,8 @@
     const grand = total * selectedWeight.v + extra;
 
     totalPiecesEl.textContent = formatNum(total);
-    resPieces.textContent = formatNum(total) + ' 包';
-    resFactor.textContent = selectedWeight.v + ' ' + selectedWeight.u + '/包'
+    resPieces.textContent = formatNum(total) + ' ' + baseUnitLabel;
+    resFactor.textContent = selectedWeight.v + ' ' + selectedWeight.u + '/' + baseUnitLabel
       + (extra > 0 ? '  +' + formatNum(extra) + selectedWeight.u : '');
     resWeight.childNodes[0].nodeValue = formatNum(grand);
     resUnit.textContent = selectedWeight.u;
@@ -541,7 +553,20 @@
     const p = presets[key];
     if(!p) return;
 
-    boxUnit.textContent = p.box;
+    baseUnitLabel = p.baseUnit || '包';
+    boxUnitSuffix.textContent = baseUnitLabel;
+    bundleUnitSuffix.textContent = baseUnitLabel;
+    sheetUnitSuffix.textContent = baseUnitLabel;
+    looseUnitSuffix.textContent = baseUnitLabel;
+    totalUnitLabel.textContent = baseUnitLabel;
+
+    hasBox = p.hasBox !== false;
+    boxRow.style.display = hasBox ? '' : 'none';
+    if(hasBox){
+      boxUnit.textContent = p.box;
+    } else {
+      boxCount.value = 0;
+    }
 
     hasBundle = p.hasBundle;
     bundleRow.style.display = hasBundle ? '' : 'none';
@@ -567,7 +592,7 @@
     const units = [...new Set(weights.map(w => w.u))];
     factorTitle.textContent = (units.length === 1
       ? (units[0] === 'g' ? 'グラム換算' : units[0] + '換算')
-      : '換算') + '（1包あたり）';
+      : '換算') + '（1' + baseUnitLabel + 'あたり）';
 
     renderWeights();
     update();
